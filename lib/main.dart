@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:_final/Repositories/DataService.dart';
+import 'itemlistpage.dart';
 
 void main() {
   runApp(const MyApp());
@@ -12,25 +13,22 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Cat Facts',
       theme: ThemeData(
-
+        primaryColor: Colors.deepPurple, // Set the primary color
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const MyHomePage(title: 'Cat Facts Home Page'),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
-
-
 
   final String title;
 
@@ -39,8 +37,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-
- final TextEditingController usernameController = TextEditingController();
+  final TextEditingController usernameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final FlutterSecureStorage secureStorage = FlutterSecureStorage();
   final Dio dio = Dio();
@@ -48,29 +45,29 @@ class _MyHomePageState extends State<MyHomePage> {
 
   String username = 'Conner';
   String password = '123';
-  
-
 
   void _login() async {
-    // Fetch saved credentials
     dataService.AddItem('username', username);
     dataService.AddItem('password', password);
     String? savedUsername = await dataService.SecureStorage.read(key: username);
     String? savedPassword = await dataService.SecureStorage.read(key: 'password');
 
-    // Check if username exists
-    if (savedUsername == null || savedUsername.isEmpty) {
+    if (savedUsername == null ||
+        savedUsername.isEmpty ||
+        savedUsername != usernameController.text) {
       _showSnackBar('Username does not exist');
       return;
     }
 
-    // Check if password is correct
     if (savedPassword != passwordController.text) {
       _showSnackBar('Incorrect password');
       return;
     }
 
-    // Password is correct, show success message
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => ItemListPage(title: 'Cats')),
+    );
     _showSnackBar('Login success');
   }
 
@@ -78,7 +75,7 @@ class _MyHomePageState extends State<MyHomePage> {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
 
-    void _navigateToAboutPage() {
+  void _navigateToAboutPage() {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => AboutPage()),
@@ -91,59 +88,81 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         title: Text('Login Page'),
       ),
-      body: Stack(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                TextField(
-                  controller: usernameController,
-                  decoration: InputDecoration(labelText: 'Username'),
-                ),
-                SizedBox(height: 16.0),
-                TextField(
-                  controller: passwordController,
-                  obscureText: true,
-                  decoration: InputDecoration(labelText: 'Password'),
-                ),
-                SizedBox(height: 16.0),
-                ElevatedButton(
-                  onPressed: _login,
-                  child: Text('Log In'),
-                ),
-              ],
-            ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Colors.deepPurple, Colors.deepPurpleAccent],
           ),
-          Positioned(
-            bottom: 8.0,
-            right: 8.0,
-            child: Text(
-              'Version 1.0.0',
-              style: TextStyle(fontSize: 16.0),
+        ),
+        child: Stack(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  TextField(
+                    controller: usernameController,
+                    decoration: InputDecoration(
+                      labelText: 'Username',
+                      filled: true,
+                      fillColor: Colors.white,
+                    ),
+                  ),
+                  SizedBox(height: 16.0),
+                  TextField(
+                    controller: passwordController,
+                    obscureText: true,
+                    decoration: InputDecoration(
+                      labelText: 'Password',
+                      filled: true,
+                      fillColor: Colors.white,
+                    ),
+                  ),
+                  SizedBox(height: 16.0),
+                  ElevatedButton(
+                    onPressed: _login,
+                    child: Text('Log In'),
+                    style: ElevatedButton.styleFrom(
+                      primary: Colors.white,
+                      onPrimary: Colors.deepPurple,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          Positioned(
-            bottom: 8.0,
-            left: 8.0,
-            child: InkWell(
-              onTap: _navigateToAboutPage,
+            Positioned(
+              bottom: 8.0,
+              right: 8.0,
               child: Text(
-                'About',
-                style: TextStyle(
-                  fontSize: 16.0,
-                  color: Colors.blue,
-                  decoration: TextDecoration.underline,
+                'Version 1.0.0',
+                style: TextStyle(fontSize: 16.0, color: Colors.white),
+              ),
+            ),
+            Positioned(
+              bottom: 8.0,
+              left: 8.0,
+              child: InkWell(
+                onTap: _navigateToAboutPage,
+                child: Text(
+                  'About',
+                  style: TextStyle(
+                    fontSize: 16.0,
+                    color: Colors.white,
+                    decoration: TextDecoration.underline,
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 }
+
 class AboutPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -151,15 +170,26 @@ class AboutPage extends StatelessWidget {
       appBar: AppBar(
         title: Text('About Page'),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-      child: Center(
-        child: Text('This app will allow you to select information about cats. The information that will be provided are Facts about these cats and their breeds. When selecting information about breeds you will be able to know their breed, country, origin, coat, and pattern. For facts you can select one or many facts to be displayed at once. This app is useful since the it can be used to exapnd knowledge of cats. This can also be used as a template for other purposes of the animal. \n  Developed by Conner Mokhtary for CMSC 2204',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Colors.deepPurple, Colors.deepPurpleAccent],
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Center(
+            child: Text(
+              'This app will allow you to select information about cats. The information that will be provided are Facts about these cats and their breeds. When selecting information about breeds you will be able to know their breed, country, origin, coat, and pattern. For facts you can select one or many facts to be displayed at once. This app is useful since it can be used to expand knowledge of cats. This can also be used as a template for other purposes of the animal.\nDeveloped by Conner Mokhtary for CMSC 2204',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
             ),
           ),
-        )
+        ),
       ),
     );
   }
